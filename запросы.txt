@@ -1,0 +1,71 @@
+1 - Постояльцы, которые хоть раз покупали доп услугу "Сувенир"
+SELECT DISTINCT g.*
+FROM guests g
+JOIN residence r ON g.id = r.guest_id
+JOIN orders o ON r.id = o.residence_id
+JOIN service s ON o.service_id = s.id
+WHERE s."name" = 'Сувенир';
+
+
+2 - Вывести 10 комнат, которые заняты на дату 1975-05-13
+select r2."number" 
+from booking b, turbooking t, residence r, rooms r2 
+where 
+	((b.date_start < '1975-05-13' and b.date_end > '1975-05-13') and b."number" = r2."number") or
+	((t.date_start < '1975-05-13' and t.date_end > '1975-05-13') and t."number" = r2."number") or
+	((r.date_start < '1975-05-13' and r.date_end > '1975-05-13') and r.room_id = r2."number") 
+limit 10
+
+
+3 - Номер, который больше всего раз бронировался с типом питания завтрак-ужин
+
+	select r."number", COUNT(r."number") 
+	from turbooking t, food f, rooms r 
+	where 
+		r.id = t."number" and
+		t.food_type = (select f.id where f."type" = 'завтрак-ужин')
+	group by r."number" 
+	order by COUNT(r."number") desc 
+	limit 1
+	
+
+4- Номера, которые были оплачены турфирмой ТагАз
+
+select r."number"
+from rooms r, turbooking t, turpaid t2
+where 
+	r.id = t."number" and
+	t.id = t2.booking_id and 
+	t.company_id = (select c.id from company c where c."name"='ТагАЗ')
+	
+
+5 - Последний постоялец живший в номере 659207 
+select g."name"  
+from guests g, residence r , rooms r2  
+where
+	r.room_id = (select r3.id from rooms r3 where r3."number"=659207) and
+	r.guest_id = g.id 
+order by r.date_end desc
+limit 1
+		
+
+
+6 - Вывести кол-во бронирований ТагАЗ'ом с типом питания завтрак-ужин
+
+select count(t.id)
+from company c, turbooking t, food f 
+where
+	t.food_type = (select f2.id from food f2 where f2."type"='завтрак-ужин') and
+	t.company_id = (select c2.id from company c2 where c2."name"='ТагАЗ')
+
+
+7 - Сколько раз каждая турфирма бронировала комнату 67119 
+
+SELECT c."name", COUNT(t.id) AS num_bookings
+FROM company c 
+JOIN turbooking t ON c.id = t.company_id
+JOIN rooms ON t."number" = rooms."number" 
+WHERE rooms."number" = '67119'
+GROUP BY c."name";
+ 
+
